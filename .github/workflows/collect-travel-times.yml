@@ -1,0 +1,34 @@
+name: Collect travel times
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect-travel-times
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/collect-travel-times.mjs
+      - name: Commit snapshot if changed
+        run: |
+          if ! git diff --quiet -- data/ || [ -n "$(git status --porcelain data/)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/travel-times
+            git commit -m "data: travel times snapshot"
+            git pull --rebase origin main
+            git push
+          else
+            echo "no changes"
+          fi
