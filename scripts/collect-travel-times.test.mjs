@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { csvEscape, toCsvLines, maxLastUpdate } from './collect-travel-times.mjs'
+import { csvEscape, toCsvLines, maxLastUpdate, assertUsableFeed } from './collect-travel-times.mjs'
 
 const rows = [
   { corridor: 'Deerfoot Trail', road_segment: 'NB Deerfoot Tr: 17 Ave SE to Stoney Tr NE', travel_time_mins: '12', last_update: '2026-07-11T13:03:55.000' },
@@ -14,6 +14,12 @@ describe('csvEscape', () => {
     expect(csvEscape('a,b')).toBe('"a,b"')
     expect(csvEscape('say "hi"')).toBe('"say ""hi"""')
   })
+  it('quotes values containing newlines', () => {
+    expect(csvEscape('a\nb')).toBe('"a\nb"')
+  })
+  it('quotes values containing carriage returns', () => {
+    expect(csvEscape('a\rb')).toBe('"a\rb"')
+  })
 })
 
 describe('toCsvLines', () => {
@@ -25,6 +31,15 @@ describe('toCsvLines', () => {
     )
     expect(lines[1].startsWith('2026-07-11T13:10:00.000Z,Deerfoot Trail,')).toBe(true)
   })
+  it('sorts corridor and segment as separate keys when one corridor prefixes another', () => {
+    const prefixRows = [
+      { corridor: 'AB', road_segment: 'C', travel_time_mins: '1', last_update: 'x' },
+      { corridor: 'A', road_segment: 'D', travel_time_mins: '2', last_update: 'y' },
+    ]
+    const lines = toCsvLines(prefixRows, 'T')
+    expect(lines[0]).toBe('T,A,D,2,y')
+    expect(lines[1]).toBe('T,AB,C,1,x')
+  })
 })
 
 describe('maxLastUpdate', () => {
@@ -33,5 +48,22 @@ describe('maxLastUpdate', () => {
   })
   it('returns empty string for empty input', () => {
     expect(maxLastUpdate([])).toBe('')
+  })
+})
+
+describe('assertUsableFeed', () => {
+  it('throws when the feed is not an array', () => {
+    expect(() => assertUsableFeed({ error: true })).toThrow('feed returned no rows')
+  })
+  it('throws when the feed is empty', () => {
+    expect(() => assertUsableFeed([])).toThrow('feed returned no rows')
+  })
+  it('throws when rows are missing last_update', () => {
+    expect(() =>
+      assertUsableFeed([{ corridor: 'X', road_segment: 'Y', travel_time_mins: '1' }]),
+    ).toThrow('feed rows missing last_update')
+  })
+  it('accepts usable rows', () => {
+    expect(() => assertUsableFeed(rows)).not.toThrow()
   })
 })

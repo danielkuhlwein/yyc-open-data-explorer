@@ -9,13 +9,15 @@ const HEADER = 'fetched_at,corridor,road_segment,travel_time_mins,last_update'
 
 export function csvEscape(value) {
   const s = String(value ?? '')
-  return /[",\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s
+  return /[",\n\r]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s
 }
 
 export function toCsvLines(rows, fetchedAt) {
   return [...rows]
-    .sort((a, b) =>
-      (a.corridor + a.road_segment).localeCompare(b.corridor + b.road_segment),
+    .sort(
+      (a, b) =>
+        a.corridor.localeCompare(b.corridor) ||
+        a.road_segment.localeCompare(b.road_segment),
     )
     .map((r) =>
       [fetchedAt, r.corridor, r.road_segment, r.travel_time_mins, r.last_update]
@@ -28,14 +30,16 @@ export function maxLastUpdate(rows) {
   return rows.reduce((max, r) => (r.last_update > max ? r.last_update : max), '')
 }
 
+export function assertUsableFeed(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) throw new Error('feed returned no rows')
+  if (maxLastUpdate(rows) === '') throw new Error('feed rows missing last_update')
+}
+
 async function main() {
-  const res = await fetch(FEED)
+  const res = await fetch(FEED, { signal: AbortSignal.timeout(30_000) })
   if (!res.ok) throw new Error(`feed fetch failed: ${res.status}`)
   const rows = await res.json()
-  if (!Array.isArray(rows) || rows.length === 0) {
-    console.log('feed returned no rows, skipping')
-    return
-  }
+  assertUsableFeed(rows)
 
   const feedMax = maxLastUpdate(rows)
   const prevMax = existsSync(STATE_FILE) ? readFileSync(STATE_FILE, 'utf8').trim() : ''
