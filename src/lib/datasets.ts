@@ -12,7 +12,7 @@ export const DATASETS = {
 } as const
 
 // 2020 and 2021 volume datasets were never published by the city (COVID gap).
-export const VOLUME_DATASETS: Record<number, string | null> = {
+export const VOLUME_DATASETS: Record<number, string | null | undefined> = {
   2016: '6wve-2ets',
   2017: 'nvuz-qykn',
   2018: 'wwf6-cpsg',

@@ -29,21 +29,31 @@ export function escapeSoqlString(value: string): string {
   return value.replaceAll("'", "''")
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`SODA request failed (${res.status}): ${url}`)
+async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+  const res = await fetch(url, { signal })
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(
+      `SODA request failed (${res.status}): ${url}${body ? ` — ${body.slice(0, 300)}` : ''}`,
+    )
+  }
   return res.json() as Promise<T>
 }
 
-export function fetchSoda<T>(datasetId: string, params: SoqlParams = {}): Promise<T[]> {
-  return fetchJson<T[]>(sodaUrl(datasetId, params))
+export function fetchSoda<T>(
+  datasetId: string,
+  params: SoqlParams = {},
+  signal?: AbortSignal,
+): Promise<T[]> {
+  return fetchJson<T[]>(sodaUrl(datasetId, params), signal)
 }
 
 export function fetchSodaGeoJSON(
   datasetId: string,
   params: SoqlParams = {},
+  signal?: AbortSignal,
 ): Promise<FeatureCollection> {
-  return fetchJson<FeatureCollection>(sodaUrl(datasetId, params, 'geojson'))
+  return fetchJson<FeatureCollection>(sodaUrl(datasetId, params, 'geojson'), signal)
 }
 
 export function pointsToFeatureCollection<T>(
