@@ -6,7 +6,7 @@
 
 **Architecture:** Pure client-side SPA — the browser queries `data.calgary.ca` SODA endpoints directly with SoQL doing all filtering server-side. One typed SODA module feeds TanStack Query hooks; MapLibre renders layers; Zustand holds viewport + layer toggles. A standalone Node script (no app dependencies) snapshots Travel Times to CSV via scheduled GitHub Actions.
 
-**Tech Stack:** Vite 7 + React 19 + TypeScript (strict), `react-map-gl/maplibre` + MapLibre GL JS, OpenFreeMap basemaps (`positron` light / `dark` dark), TanStack Query v5, Zustand v5, React Router v7 (imports from `react-router`), Tailwind CSS v4 (`@tailwindcss/vite`), Vitest + React Testing Library.
+**Tech Stack:** Vite 8 + React 19 + TypeScript 6 (strict), `react-map-gl/maplibre` v8 + MapLibre GL JS 5, OpenFreeMap basemaps (`positron` light / `dark` dark), TanStack Query v5, Zustand v5, React Router v8 (imports from `react-router` — the v8-required style; `react-router-dom` no longer exists), Tailwind CSS v4 (`@tailwindcss/vite`), Vitest + React Testing Library. (Majors updated after Task 1 installed newer versions than originally drafted; all planned imports verified against the installed majors.)
 
 **Spec:** `docs/superpowers/specs/2026-07-11-yyc-open-data-explorer-design.md` — dataset IDs, scope cuts, and risks live there.
 
