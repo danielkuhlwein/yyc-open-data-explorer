@@ -27,6 +27,6 @@ export function compileHeatmapParams(f: HeatmapFilters, now: Date): SoqlParams {
   return {
     select: 'latitude,longitude',
     where: clauses.join(' AND ') || undefined,
-    limit: 70000,
+    limit: 200000,
   }
 }

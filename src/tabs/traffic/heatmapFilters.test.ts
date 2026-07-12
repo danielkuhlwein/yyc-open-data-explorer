@@ -9,7 +9,7 @@ describe('compileHeatmapParams', () => {
     const p = compileHeatmapParams(f, NOW)
     expect(p.select).toBe('latitude,longitude')
     expect(p.where).toBe("start_dt > '2026-06-11T12:00:00'")
-    expect(p.limit).toBe(70000)
+    expect(p.limit).toBe(200000)
   })
 
   it('adds hour range and weekday clauses', () => {
