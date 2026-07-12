@@ -1,15 +1,21 @@
 import { useMemo, useState } from 'react'
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
-import type { CircleLayerSpecification, HeatmapLayerSpecification, MapLayerMouseEvent } from 'react-map-gl/maplibre'
+import type {
+  CircleLayerSpecification,
+  HeatmapLayerSpecification,
+  LineLayerSpecification,
+  MapLayerMouseEvent,
+} from 'react-map-gl/maplibre'
 import MapCanvas from '../../components/MapCanvas'
 import LayerPanel from '../../components/LayerPanel'
 import { useLayerStore } from '../../stores/layerStore'
 import { usePrefersDark } from '../../theme'
-import { useCameras, useCurrentIncidents, useIncidentHeatmap } from '../../hooks/useTraffic'
+import { useCameras, useCurrentIncidents, useIncidentHeatmap, useVolumes } from '../../hooks/useTraffic'
 import { camerasToFC, incidentsToFC } from './trafficTransforms'
 import CameraPopup from './CameraPopup'
 import HeatmapControls from './HeatmapControls'
 import type { HeatmapFilters } from './heatmapFilters'
+import { VOLUME_YEARS, volumeLineColor, volumeLineWidth } from './volumeStyle'
 
 type PopupState =
   | { kind: 'incident'; lngLat: [number, number]; props: Record<string, string> }
@@ -54,6 +60,17 @@ const heatmapLayer = (dark: boolean): HeatmapLayerSpecification => ({
   },
 })
 
+const volumeLayer = (dark: boolean): LineLayerSpecification => ({
+  id: 'volumes',
+  type: 'line',
+  source: 'volumes',
+  paint: {
+    'line-color': volumeLineColor(dark),
+    'line-width': volumeLineWidth(),
+    'line-opacity': 0.8,
+  },
+})
+
 export default function TrafficTab() {
   const layers = useLayerStore((s) => s.traffic)
   const toggle = useLayerStore((s) => s.toggle)
@@ -70,6 +87,10 @@ export default function TrafficTab() {
     days: 'all',
   })
   const heatmap = useIncidentHeatmap(heatFilters, layers.heatmap)
+
+  const [volumeYear, setVolumeYear] = useState(VOLUME_YEARS[0].year)
+  const volumeDatasetId = VOLUME_YEARS.find((y) => y.year === volumeYear)?.id
+  const volumes = useVolumes(volumeDatasetId, layers.volumes)
 
   const incidentsFC = useMemo(() => incidentsToFC(incidents.data ?? []), [incidents.data])
   const camerasFC = useMemo(() => camerasToFC(cameras.data ?? []), [cameras.data])
@@ -99,6 +120,11 @@ export default function TrafficTab() {
         {layers.heatmap && heatmap.data && (
           <Source id="incident-heat" type="geojson" data={heatmap.data}>
             <Layer {...heatmapLayer(dark)} />
+          </Source>
+        )}
+        {layers.volumes && volumes.data && (
+          <Source id="volumes" type="geojson" data={volumes.data}>
+            <Layer {...volumeLayer(dark)} />
           </Source>
         )}
         {layers.incidents && (
@@ -139,9 +165,27 @@ export default function TrafficTab() {
             { key: 'incidents', label: 'Live incidents', checked: layers.incidents, onChange: () => toggle('traffic', 'incidents') },
             { key: 'cameras', label: 'Traffic cameras', checked: layers.cameras, onChange: () => toggle('traffic', 'cameras') },
             { key: 'heatmap', label: 'Incident history heatmap', checked: layers.heatmap, onChange: () => toggle('traffic', 'heatmap') },
+            { key: 'volumes', label: 'Traffic volumes (annual)', checked: layers.volumes, onChange: () => toggle('traffic', 'volumes') },
           ]}
         >
-          {layers.heatmap && <HeatmapControls filters={heatFilters} onChange={setHeatFilters} />}
+          <>
+            {layers.heatmap && <HeatmapControls filters={heatFilters} onChange={setHeatFilters} />}
+            {layers.volumes && (
+              <label className="flex items-center gap-2 border-t border-stone-200 pt-2 text-xs dark:border-zinc-700">
+                Year
+                <select
+                  value={volumeYear}
+                  onChange={(e) => setVolumeYear(Number(e.target.value))}
+                  className="rounded border border-stone-300 bg-transparent px-1 py-0.5 dark:border-zinc-700"
+                >
+                  {VOLUME_YEARS.map((y) => (
+                    <option key={y.year} value={y.year}>{y.year}</option>
+                  ))}
+                </select>
+                <span className="text-stone-400">2020–21: not published</span>
+              </label>
+            )}
+          </>
         </LayerPanel>
       </div>
     </div>

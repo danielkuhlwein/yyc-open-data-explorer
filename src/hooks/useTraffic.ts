@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { DATASETS, type CameraRow, type HeatPointRow, type IncidentRow, type TravelTimeRow } from '../lib/datasets'
-import { fetchSoda, pointsToFeatureCollection } from '../lib/soda'
+import { fetchSoda, fetchSodaGeoJSON, pointsToFeatureCollection } from '../lib/soda'
 import { compileHeatmapParams, type HeatmapFilters } from '../tabs/traffic/heatmapFilters'
 
 export function useCurrentIncidents(enabled: boolean) {
@@ -52,5 +52,13 @@ export function useIncidentHeatmap(filters: HeatmapFilters, enabled: boolean) {
       })
     },
     enabled,
+  })
+}
+
+export function useVolumes(datasetId: string | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ['volumes', datasetId],
+    queryFn: ({ signal }) => fetchSodaGeoJSON(datasetId!, { limit: 2000 }, signal),
+    enabled: enabled && !!datasetId,
   })
 }
