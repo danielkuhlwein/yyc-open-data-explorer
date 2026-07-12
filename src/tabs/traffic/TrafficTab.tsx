@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react'
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
-import type { CircleLayerSpecification, MapLayerMouseEvent } from 'react-map-gl/maplibre'
+import type { CircleLayerSpecification, HeatmapLayerSpecification, MapLayerMouseEvent } from 'react-map-gl/maplibre'
 import MapCanvas from '../../components/MapCanvas'
 import LayerPanel from '../../components/LayerPanel'
 import { useLayerStore } from '../../stores/layerStore'
 import { usePrefersDark } from '../../theme'
-import { useCameras, useCurrentIncidents } from '../../hooks/useTraffic'
+import { useCameras, useCurrentIncidents, useIncidentHeatmap } from '../../hooks/useTraffic'
 import { camerasToFC, incidentsToFC } from './trafficTransforms'
 import CameraPopup from './CameraPopup'
+import HeatmapControls from './HeatmapControls'
+import type { HeatmapFilters } from './heatmapFilters'
 
 type PopupState =
   | { kind: 'incident'; lngLat: [number, number]; props: Record<string, string> }
@@ -37,6 +39,21 @@ const cameraLayer = (dark: boolean): CircleLayerSpecification => ({
   },
 })
 
+const heatmapLayer = (dark: boolean): HeatmapLayerSpecification => ({
+  id: 'incident-heat',
+  type: 'heatmap',
+  source: 'incident-heat',
+  paint: {
+    'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 9, 8, 14, 24],
+    'heatmap-opacity': 0.75,
+    'heatmap-color': dark
+      ? ['interpolate', ['linear'], ['heatmap-density'],
+         0, 'rgba(24, 79, 149, 0)', 0.2, '#184f95', 0.5, '#3987e5', 0.8, '#86b6ef', 1, '#cde2fb']
+      : ['interpolate', ['linear'], ['heatmap-density'],
+         0, 'rgba(158, 197, 244, 0)', 0.2, '#9ec5f4', 0.5, '#5598e7', 0.8, '#256abf', 1, '#0d366b'],
+  },
+})
+
 export default function TrafficTab() {
   const layers = useLayerStore((s) => s.traffic)
   const toggle = useLayerStore((s) => s.toggle)
@@ -45,6 +62,14 @@ export default function TrafficTab() {
 
   const incidents = useCurrentIncidents(layers.incidents)
   const cameras = useCameras(layers.cameras)
+
+  const [heatFilters, setHeatFilters] = useState<HeatmapFilters>({
+    preset: '1y',
+    hourFrom: 0,
+    hourTo: 23,
+    days: 'all',
+  })
+  const heatmap = useIncidentHeatmap(heatFilters, layers.heatmap)
 
   const incidentsFC = useMemo(() => incidentsToFC(incidents.data ?? []), [incidents.data])
   const camerasFC = useMemo(() => camerasToFC(cameras.data ?? []), [cameras.data])
@@ -71,6 +96,11 @@ export default function TrafficTab() {
         )}
         onClick={onClick}
       >
+        {layers.heatmap && heatmap.data && (
+          <Source id="incident-heat" type="geojson" data={heatmap.data}>
+            <Layer {...heatmapLayer(dark)} />
+          </Source>
+        )}
         {layers.incidents && (
           <Source id="incidents" type="geojson" data={incidentsFC}>
             <Layer {...incidentLayer(dark)} />
@@ -108,8 +138,11 @@ export default function TrafficTab() {
           items={[
             { key: 'incidents', label: 'Live incidents', checked: layers.incidents, onChange: () => toggle('traffic', 'incidents') },
             { key: 'cameras', label: 'Traffic cameras', checked: layers.cameras, onChange: () => toggle('traffic', 'cameras') },
+            { key: 'heatmap', label: 'Incident history heatmap', checked: layers.heatmap, onChange: () => toggle('traffic', 'heatmap') },
           ]}
-        />
+        >
+          {layers.heatmap && <HeatmapControls filters={heatFilters} onChange={setHeatFilters} />}
+        </LayerPanel>
       </div>
     </div>
   )
