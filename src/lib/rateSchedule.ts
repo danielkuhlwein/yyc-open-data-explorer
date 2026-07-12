@@ -24,6 +24,7 @@ const DAY_INDEX: Record<string, number> = {
 function parseDays(text: string): number[] | null {
   const t = text.toLowerCase()
   if (t.includes('weekday')) return [1, 2, 3, 4, 5]
+  // Holidays price identically to Sundays in these schedules, so both map to day 0.
   if (t.includes('sunday/holiday')) return [0]
   const range = t.match(/\b(sun|mon|tue|tues|wed|thu|thur|thurs|fri|sat)[a-z]*\s*(?:-|to)\s*(sun|mon|tue|tues|wed|thu|thur|thurs|fri|sat)[a-z]*/)
   if (range) {
@@ -69,17 +70,20 @@ function parseTimeRange(text: string): { startMin: number; endMin: number } | nu
 // (e.g. "1.00 per Hour", "$.50 per 30 Min"), and occasionally has 3+ decimal
 // digits (e.g. "$1.005 per Hour") — so the fractional part isn't capped at 2.
 const AMOUNT = String.raw`\$?(\d*\.\d+|\d+)`
+const PER_HOUR_RE = new RegExp(`${AMOUNT}\\s*per\\s*hour`, 'i')
+// "$0.50 per 1/2 hour" / "$1.00 per half hour" -> double to an hourly-equivalent rate
+const PER_HALF_HOUR_RE = new RegExp(`${AMOUNT}\\s*per\\s*(?:1/2|half)\\s*hour`, 'i')
+// "$1.00 per 30 Min" / "$2.00 each 30 Min" / "$0.50 per 15 Min" -> normalize to an hourly rate
+const PER_MINUTES_RE = new RegExp(`${AMOUNT}\\s*(?:per|each)\\s*(\\d+)\\s*min`, 'i')
 
 function parseBody(text: string): { kind: RateWindow['kind']; ratePerHour: number } | null {
-  const perHour = text.match(new RegExp(`${AMOUNT}\\s*per\\s*hour`, 'i'))
+  const perHour = text.match(PER_HOUR_RE)
   if (perHour) return { kind: 'paid', ratePerHour: Number(perHour[1]) }
 
-  // "$0.50 per 1/2 hour" / "$1.00 per half hour" -> double to an hourly-equivalent rate
-  const perHalfHour = text.match(new RegExp(`${AMOUNT}\\s*per\\s*(?:1/2|half)\\s*hour`, 'i'))
+  const perHalfHour = text.match(PER_HALF_HOUR_RE)
   if (perHalfHour) return { kind: 'paid', ratePerHour: Number(perHalfHour[1]) * 2 }
 
-  // "$1.00 per 30 Min" / "$2.00 each 30 Min" / "$0.50 per 15 Min" -> normalize to an hourly rate
-  const perMinutes = text.match(new RegExp(`${AMOUNT}\\s*(?:per|each)\\s*(\\d+)\\s*min`, 'i'))
+  const perMinutes = text.match(PER_MINUTES_RE)
   if (perMinutes) {
     const amount = Number(perMinutes[1])
     const minutes = Number(perMinutes[2])
@@ -135,6 +139,11 @@ export function parseRateSchedule(html: string | undefined | null): ParsedSchedu
     const bodyDays = !days ? parseDays(body) : null
     if (bodyDays) {
       const bodyTime = parseTimeRange(body)
+      // Guard: this fallback exists for the motorcycle-only case, where the body
+      // carries its own day/time but never a rate — so `rate` (parsed above from
+      // the same body) is deliberately ignored here (0 real occurrences carry one).
+      // A body that somehow paired a day/time with a genuine rate would still lose
+      // that rate, on purpose: this branch always means a hard no-parking window.
       windows.push({
         days: bodyDays,
         startMin: bodyTime?.startMin ?? 0,
