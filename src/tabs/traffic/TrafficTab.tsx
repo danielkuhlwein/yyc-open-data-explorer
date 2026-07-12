@@ -10,11 +10,12 @@ import MapCanvas from '../../components/MapCanvas'
 import LayerPanel from '../../components/LayerPanel'
 import { useLayerStore } from '../../stores/layerStore'
 import { usePrefersDark } from '../../theme'
-import { useCameras, useCurrentIncidents, useIncidentHeatmap, useVolumes } from '../../hooks/useTraffic'
+import { useCameras, useCurrentIncidents, useIncidentHeatmap, useTravelTimes, useVolumes } from '../../hooks/useTraffic'
 import { camerasToFC, incidentsToFC } from './trafficTransforms'
 import CameraPopup from './CameraPopup'
 import HeatmapControls from './HeatmapControls'
 import type { HeatmapFilters } from './heatmapFilters'
+import TravelTimesSidebar from './TravelTimesSidebar'
 import { VOLUME_YEARS, volumeLineColor, volumeLineWidth } from './volumeStyle'
 
 type PopupState =
@@ -92,6 +93,8 @@ export default function TrafficTab() {
   const volumeDatasetId = VOLUME_YEARS.find((y) => y.year === volumeYear)?.id
   const volumes = useVolumes(volumeDatasetId, layers.volumes)
 
+  const travelTimes = useTravelTimes(true)
+
   const incidentsFC = useMemo(() => incidentsToFC(incidents.data ?? []), [incidents.data])
   const camerasFC = useMemo(() => camerasToFC(cameras.data ?? []), [cameras.data])
 
@@ -159,7 +162,7 @@ export default function TrafficTab() {
           </Popup>
         )}
       </MapCanvas>
-      <div className="pointer-events-none absolute right-3 top-3">
+      <div className="pointer-events-none absolute right-3 top-3 flex max-h-[calc(100%-1.5rem)] flex-col gap-3">
         <LayerPanel
           items={[
             { key: 'incidents', label: 'Live incidents', checked: layers.incidents, onChange: () => toggle('traffic', 'incidents') },
@@ -187,6 +190,7 @@ export default function TrafficTab() {
             )}
           </>
         </LayerPanel>
+        <TravelTimesSidebar rows={travelTimes.data ?? []} updatedAt={travelTimes.dataUpdatedAt} />
       </div>
     </div>
   )
