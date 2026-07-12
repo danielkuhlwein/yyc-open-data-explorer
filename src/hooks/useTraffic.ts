@@ -58,7 +58,7 @@ export function useIncidentHeatmap(filters: HeatmapFilters, enabled: boolean) {
 export function useVolumes(datasetId: string | undefined, enabled: boolean) {
   return useQuery({
     queryKey: ['volumes', datasetId],
-    queryFn: ({ signal }) => fetchSodaGeoJSON(datasetId!, { limit: 2000 }, signal),
+    queryFn: ({ signal }) => fetchSodaGeoJSON(datasetId!, { limit: 5000 }, signal),
     enabled: enabled && !!datasetId,
   })
 }

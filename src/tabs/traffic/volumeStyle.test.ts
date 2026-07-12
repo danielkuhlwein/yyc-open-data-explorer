@@ -14,8 +14,6 @@ describe('volume paint expressions', () => {
   it('builds interpolate expressions over the volume property', () => {
     expect(volumeLineColor(false)[0]).toBe('interpolate')
     expect(JSON.stringify(volumeLineColor(false))).toContain('to-number')
-    // volumeLineWidth() is typed `number` to satisfy maplibre's paint prop (see volumeStyle.ts);
-    // cast back to index into the underlying expression array for this assertion.
-    expect((volumeLineWidth() as unknown as unknown[])[0]).toBe('interpolate')
+    expect(volumeLineWidth()[0]).toBe('interpolate')
   })
 })
