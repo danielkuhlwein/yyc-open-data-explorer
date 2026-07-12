@@ -6,7 +6,8 @@ export function NoticePopup({ props }: { props: Record<string, string> }) {
       <p className="text-xs">Status: {props.status}</p>
       {props.adStart && (
         <p className="text-xs text-stone-500">
-          Notice period {props.adStart.slice(0, 10)} → {props.adEnd.slice(0, 10)}
+          Notice period {props.adStart.slice(0, 10)}
+          {props.adEnd ? ` → ${props.adEnd.slice(0, 10)}` : ''}
         </p>
       )}
       <p className="text-[11px] text-stone-400">{props.file}</p>

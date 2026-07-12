@@ -8,6 +8,7 @@ import type {
 } from 'react-map-gl/maplibre'
 import MapCanvas from '../../components/MapCanvas'
 import LayerPanel from '../../components/LayerPanel'
+import LayerStatus from '../../components/LayerStatus'
 import { useLayerStore } from '../../stores/layerStore'
 import { usePrefersDark } from '../../theme'
 import { useCameras, useCurrentIncidents, useIncidentHeatmap, useTravelTimes, useVolumes } from '../../hooks/useTraffic'
@@ -165,10 +166,58 @@ export default function TrafficTab() {
       <div className="pointer-events-none absolute right-3 top-3 flex max-h-[calc(100%-1.5rem)] flex-col gap-3">
         <LayerPanel
           items={[
-            { key: 'incidents', label: 'Live incidents', checked: layers.incidents, onChange: () => toggle('traffic', 'incidents') },
-            { key: 'cameras', label: 'Traffic cameras', checked: layers.cameras, onChange: () => toggle('traffic', 'cameras') },
-            { key: 'heatmap', label: 'Incident history heatmap', checked: layers.heatmap, onChange: () => toggle('traffic', 'heatmap') },
-            { key: 'volumes', label: 'Traffic volumes (annual)', checked: layers.volumes, onChange: () => toggle('traffic', 'volumes') },
+            {
+              key: 'incidents',
+              label: 'Live incidents',
+              checked: layers.incidents,
+              onChange: () => toggle('traffic', 'incidents'),
+              status: (
+                <LayerStatus
+                  isError={incidents.isError}
+                  isFetching={incidents.isFetching}
+                  dataUpdatedAt={incidents.dataUpdatedAt}
+                />
+              ),
+            },
+            {
+              key: 'cameras',
+              label: 'Traffic cameras',
+              checked: layers.cameras,
+              onChange: () => toggle('traffic', 'cameras'),
+              status: (
+                <LayerStatus
+                  isError={cameras.isError}
+                  isFetching={cameras.isFetching}
+                  dataUpdatedAt={cameras.dataUpdatedAt}
+                />
+              ),
+            },
+            {
+              key: 'heatmap',
+              label: 'Incident history heatmap',
+              checked: layers.heatmap,
+              onChange: () => toggle('traffic', 'heatmap'),
+              status: (
+                <LayerStatus
+                  isError={heatmap.isError}
+                  isFetching={heatmap.isFetching}
+                  dataUpdatedAt={heatmap.dataUpdatedAt}
+                />
+              ),
+            },
+            {
+              key: 'volumes',
+              label: 'Traffic volumes (annual)',
+              checked: layers.volumes,
+              onChange: () => toggle('traffic', 'volumes'),
+              status: (
+                <LayerStatus
+                  isError={volumes.isError}
+                  isFetching={volumes.isFetching}
+                  dataUpdatedAt={volumes.dataUpdatedAt}
+                />
+              ),
+            },
           ]}
         >
           <>

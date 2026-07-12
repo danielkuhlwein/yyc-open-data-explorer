@@ -8,6 +8,7 @@ import type {
 import type { FeatureCollection } from 'geojson'
 import MapCanvas from '../../components/MapCanvas'
 import LayerPanel from '../../components/LayerPanel'
+import LayerStatus from '../../components/LayerStatus'
 import { useLayerStore } from '../../stores/layerStore'
 import { usePrefersDark } from '../../theme'
 import { useParkingZones, useResidentialZones, useSchoolZones } from '../../hooks/useParking'
@@ -134,9 +135,45 @@ export default function ParkingTab() {
       <div className="pointer-events-none absolute right-3 top-3">
         <LayerPanel
           items={[
-            { key: 'meteredCurbs', label: 'Metered curbs (by rate)', checked: layers.meteredCurbs, onChange: () => toggle('parking', 'meteredCurbs') },
-            { key: 'residentialZones', label: 'Residential permit zones', checked: layers.residentialZones, onChange: () => toggle('parking', 'residentialZones') },
-            { key: 'schoolZones', label: 'School zones', checked: layers.schoolZones, onChange: () => toggle('parking', 'schoolZones') },
+            {
+              key: 'meteredCurbs',
+              label: 'Metered curbs (by rate)',
+              checked: layers.meteredCurbs,
+              onChange: () => toggle('parking', 'meteredCurbs'),
+              status: (
+                <LayerStatus
+                  isError={zones.isError}
+                  isFetching={zones.isFetching}
+                  dataUpdatedAt={zones.dataUpdatedAt}
+                />
+              ),
+            },
+            {
+              key: 'residentialZones',
+              label: 'Residential permit zones',
+              checked: layers.residentialZones,
+              onChange: () => toggle('parking', 'residentialZones'),
+              status: (
+                <LayerStatus
+                  isError={residential.isError}
+                  isFetching={residential.isFetching}
+                  dataUpdatedAt={residential.dataUpdatedAt}
+                />
+              ),
+            },
+            {
+              key: 'schoolZones',
+              label: 'School zones',
+              checked: layers.schoolZones,
+              onChange: () => toggle('parking', 'schoolZones'),
+              status: (
+                <LayerStatus
+                  isError={school.isError}
+                  isFetching={school.isFetching}
+                  dataUpdatedAt={school.dataUpdatedAt}
+                />
+              ),
+            },
           ]}
         >
           {layers.meteredCurbs && (

@@ -3,6 +3,7 @@ import { Layer, Popup, Source } from 'react-map-gl/maplibre'
 import type { CircleLayerSpecification, MapLayerMouseEvent } from 'react-map-gl/maplibre'
 import MapCanvas from '../../components/MapCanvas'
 import LayerPanel from '../../components/LayerPanel'
+import LayerStatus from '../../components/LayerStatus'
 import { useLayerStore } from '../../stores/layerStore'
 import { usePrefersDark } from '../../theme'
 import { useBuildingPermits, useDevPermits, useNotices } from '../../hooks/useDevelopment'
@@ -121,9 +122,45 @@ export default function DevelopmentTab() {
       <div className="pointer-events-none absolute right-3 top-3">
         <LayerPanel
           items={[
-            { key: 'notices', label: 'Current public notices', checked: layers.notices, onChange: () => toggle('development', 'notices') },
-            { key: 'devPermits', label: 'Development permits', checked: layers.devPermits, onChange: () => toggle('development', 'devPermits') },
-            { key: 'buildingPermits', label: 'Building permits (by cost)', checked: layers.buildingPermits, onChange: () => toggle('development', 'buildingPermits') },
+            {
+              key: 'notices',
+              label: 'Current public notices',
+              checked: layers.notices,
+              onChange: () => toggle('development', 'notices'),
+              status: (
+                <LayerStatus
+                  isError={notices.isError}
+                  isFetching={notices.isFetching}
+                  dataUpdatedAt={notices.dataUpdatedAt}
+                />
+              ),
+            },
+            {
+              key: 'devPermits',
+              label: 'Development permits',
+              checked: layers.devPermits,
+              onChange: () => toggle('development', 'devPermits'),
+              status: (
+                <LayerStatus
+                  isError={devPermits.isError}
+                  isFetching={devPermits.isFetching}
+                  dataUpdatedAt={devPermits.dataUpdatedAt}
+                />
+              ),
+            },
+            {
+              key: 'buildingPermits',
+              label: 'Building permits (by cost)',
+              checked: layers.buildingPermits,
+              onChange: () => toggle('development', 'buildingPermits'),
+              status: (
+                <LayerStatus
+                  isError={building.isError}
+                  isFetching={building.isFetching}
+                  dataUpdatedAt={building.dataUpdatedAt}
+                />
+              ),
+            },
           ]}
         >
           {layers.devPermits && (
