@@ -33,7 +33,11 @@ export default function TimeSelector({ value, onChange }: Props) {
         type="time"
         value={`${hh}:${mm}`}
         onChange={(e) => {
+          // Some browsers allow clearing the field ('') — keep the previous time
+          // rather than propagating NaN minutes (which would render every curb free).
+          if (!e.target.value) return
           const [h, m] = e.target.value.split(':').map(Number)
+          if (Number.isNaN(h) || Number.isNaN(m)) return
           onChange({ ...value, minutes: h * 60 + m })
         }}
         className="rounded border border-stone-300 bg-transparent px-1 py-0.5 dark:border-zinc-700"

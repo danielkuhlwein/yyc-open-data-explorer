@@ -44,8 +44,8 @@ export default function ParkingPopup({ props }: { props: ParkingZoneProps }) {
       )}
       {schedule.notes.length > 0 && (
         <ul className="list-disc pl-4 text-[11px] text-stone-500">
-          {schedule.notes.map((n) => (
-            <li key={n}>{n}</li>
+          {schedule.notes.map((n, i) => (
+            <li key={i}>{n}</li>
           ))}
         </ul>
       )}

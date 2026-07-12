@@ -147,7 +147,7 @@ export default function ParkingTab() {
                 <span><span className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: dark ? '#6da7ec' : '#9ec5f4' }} />$1</span>
                 <span><span className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: dark ? '#cde2fb' : '#0d366b' }} />$5+</span>
                 <span><span className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: dark ? '#e66767' : '#d03b3b' }} />No parking</span>
-                <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-stone-400" />Other</span>
+                <span><span className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: '#898781' }} />Other</span>
               </div>
             </>
           )}
