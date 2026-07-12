@@ -12,4 +12,15 @@ Design spec: [docs/superpowers/specs/2026-07-11-yyc-open-data-explorer-design.md
 
 ## Status
 
-Early days — spec approved, implementation starting.
+v1 working: traffic (live incidents, cameras, history heatmap, annual volumes, travel times),
+parking (time-of-day rate map with real rate schedules), development (current notices +
+filterable development and building permits). Travel-times history accumulates in
+`data/travel-times/` every ~20 minutes via GitHub Actions.
+
+## Development
+
+```bash
+npm install
+npm run dev   # http://localhost:5173
+npm test
+```
